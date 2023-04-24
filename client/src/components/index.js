@@ -1,9 +1,17 @@
 import PageHOC from './PageHOC'
 import CustomInput from './CustomInput'
 import CustomButton from './CustomButton'
+import Alert from './Alert'
+import GameLoad from './GameLoad'
+import ActionButton from './ActionButton'
+import Card from './Card'
 
 export {
     PageHOC,
     CustomInput,
-    CustomButton
+    CustomButton,
+    Alert,
+    GameLoad,
+    ActionButton,
+    Card
 }

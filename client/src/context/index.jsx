@@ -10,6 +10,7 @@ import Web3Modal from "web3modal";
 import { useNavigate } from "react-router-dom";
 
 import { ABI, ADDRESS } from "../contract";
+import { createEventListeners } from "./createEventListeners";
 
 const GlobalContext = createContext();
 
@@ -17,8 +18,14 @@ export const GlobalContextProvider = ({ children }) => {
   const [walletAddress, setWalletAddress] = useState('')
   const [provider, setProvider] = useState(null)
   const [contract, setContract] = useState(null)
+  const [step, setStep] = useState(1);
   const [showAlert, setShowAlert] = useState({ status: false, type: 'info', message: '' })
 
+  const [battleName, setBattleName] = useState('');
+  const [gameData, setGameData] = useState({ players: [], pendingBattles: [], activeBattle: null });
+  const [updateGameData, setUpdateGameData] = useState(0);
+
+  const navigate = useNavigate()
 
   // Set the wallet address to the state
   const updateCurrentWalletAddress = async () => {
@@ -51,22 +58,63 @@ export const GlobalContextProvider = ({ children }) => {
     setSmartContractAndProvider()
   }, [])
 
+  //* Activate event listeners for the smart contract
+  useEffect(() => {
+    if (step === -1 && contract) {
+      createEventListeners({
+        navigate,
+        contract,
+        provider,
+        walletAddress,
+        setShowAlert,
+        player1Ref,
+        player2Ref,
+        setUpdateGameData,
+      });
+    }
+  }, [step]);
+
   useEffect(() => {
     if (showAlert?.status) {
       const timer = setTimeout(() => {
-        setShowAlert({ status: 'false', type: 'info', message: '' })
+        setShowAlert({ status: false, type: 'info', message: '' })
       }, [5000])
 
       return () => clearTimeout(timer)
     }
   }, [showAlert])
+
+  //* Set the game data to the state
+  useEffect(() => {
+    const fetchGameData = async () => {
+      if (contract) {
+        const fetchedBattles = await contract.getAllBattles()
+        const pendingBattles = fetchedBattles.filter((battle) => battle.battleStatus === 0)
+        let activeBattle = null
+
+        fetchedBattles.forEach((battle) => {
+          if (battle.players.find((player) => player.toLowerCase() === walletAddress.toLowerCase())) {
+            if (battle.winner.startsWith('0x00')) {
+              activeBattle = battle
+            }
+          }
+        });
+
+        setGameData({ pendingBattles: pendingBattles.slice(1), activeBattle })
+      }
+    }
+
+    fetchGameData();
+  }, [contract, updateGameData])
   
 
   return (
     <GlobalContext.Provider
       value={{
         contract, walletAddress,
-        showAlert, setShowAlert
+        showAlert, setShowAlert,
+        battleName, setBattleName,
+        gameData
       }}
     >
       {children}
