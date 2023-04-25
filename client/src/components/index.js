@@ -5,6 +5,9 @@ import Alert from './Alert'
 import GameLoad from './GameLoad'
 import ActionButton from './ActionButton'
 import Card from './Card'
+import PlayerInfo from './PlayerInfo'
+import GameInfo from './GameInfo'
+import OnboardModal from './OnboardModal'
 
 export {
     PageHOC,
@@ -13,5 +16,8 @@ export {
     Alert,
     GameLoad,
     ActionButton,
-    Card
+    Card,
+    PlayerInfo,
+    GameInfo,
+    OnboardModal
 }

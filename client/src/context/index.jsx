@@ -4,28 +4,54 @@ import React, {
   useEffect,
   useRef,
   useState,
-} from "react";
-import { ethers } from "ethers";
-import Web3Modal from "web3modal";
-import { useNavigate } from "react-router-dom";
+} from "react"
+import { ethers } from "ethers"
+import Web3Modal from "web3modal"
+import { useNavigate } from "react-router-dom"
 
-import { ABI, ADDRESS } from "../contract";
-import { createEventListeners } from "./createEventListeners";
+import { ABI, ADDRESS } from "../contract"
+import { createEventListeners } from "./createEventListeners"
 
-const GlobalContext = createContext();
+const GlobalContext = createContext()
 
 export const GlobalContextProvider = ({ children }) => {
   const [walletAddress, setWalletAddress] = useState('')
   const [provider, setProvider] = useState(null)
   const [contract, setContract] = useState(null)
-  const [step, setStep] = useState(1);
   const [showAlert, setShowAlert] = useState({ status: false, type: 'info', message: '' })
+  const [step, setStep] = useState(1)
 
-  const [battleName, setBattleName] = useState('');
-  const [gameData, setGameData] = useState({ players: [], pendingBattles: [], activeBattle: null });
-  const [updateGameData, setUpdateGameData] = useState(0);
+  const [battleGround, setBattleGround] = useState('bg-astral')
+  const [battleName, setBattleName] = useState('')
+  const [gameData, setGameData] = useState({ players: [], pendingBattles: [], activeBattle: null })
+  const [updateGameData, setUpdateGameData] = useState(0)
 
   const navigate = useNavigate()
+
+  //* Set battleground to local storage
+  useEffect(() => {
+    const isBattleground = localStorage.getItem('battleground');
+
+    if (isBattleground) {
+      setBattleGround(isBattleground);
+    } else {
+      localStorage.setItem('battleground', battleGround);
+    }
+  }, []);
+
+  //* Reset web3 onboarding modal params
+  useEffect(() => {
+    const resetParams = async () => {
+      const currentStep = await GetParams();
+
+      setStep(currentStep.step);
+    };
+
+    resetParams();
+
+    window?.ethereum?.on('chainChanged', () => resetParams());
+    window?.ethereum?.on('accountsChanged', () => resetParams());
+  }, []);
 
   // Set the wallet address to the state
   const updateCurrentWalletAddress = async () => {
@@ -70,9 +96,9 @@ export const GlobalContextProvider = ({ children }) => {
         player1Ref,
         player2Ref,
         setUpdateGameData,
-      });
+      })
     }
-  }, [step]);
+  }, [step])
 
   useEffect(() => {
     if (showAlert?.status) {
@@ -98,13 +124,13 @@ export const GlobalContextProvider = ({ children }) => {
               activeBattle = battle
             }
           }
-        });
+        })
 
         setGameData({ pendingBattles: pendingBattles.slice(1), activeBattle })
       }
     }
 
-    fetchGameData();
+    fetchGameData()
   }, [contract, updateGameData])
   
 
@@ -114,12 +140,13 @@ export const GlobalContextProvider = ({ children }) => {
         contract, walletAddress,
         showAlert, setShowAlert,
         battleName, setBattleName,
-        gameData
+        gameData,
+        battleGround, setBattleGround
       }}
     >
       {children}
     </GlobalContext.Provider>
-  );
-};
+  )
+}
 
-export const useGlobalContext = () => useContext(GlobalContext);
+export const useGlobalContext = () => useContext(GlobalContext)
